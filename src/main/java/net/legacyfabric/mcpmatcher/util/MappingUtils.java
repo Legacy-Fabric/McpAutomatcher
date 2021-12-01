@@ -1,16 +1,14 @@
 package net.legacyfabric.mcpmatcher.util;
 
 import org.cadixdev.lorenz.MappingSet;
-import org.cadixdev.lorenz.model.ClassMapping;
-import org.cadixdev.lorenz.model.FieldMapping;
-import org.cadixdev.lorenz.model.MethodMapping;
-import org.cadixdev.lorenz.model.TopLevelClassMapping;
+import org.cadixdev.lorenz.model.*;
 import org.objectweb.asm.*;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Enumeration;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -76,6 +74,21 @@ public class MappingUtils {
 
         public MappingSet getMappings() {
             return outMappings;
+        }
+    }
+
+
+    public static void iterateClasses(MappingSet mappings, Consumer<ClassMapping<?, ?>> consumer) {
+        for (TopLevelClassMapping topLevelClassMapping : mappings.getTopLevelClassMappings()) {
+            iterateClasses(topLevelClassMapping, consumer);
+        }
+    }
+
+    private static void iterateClasses(ClassMapping<?, ?> classMapping, Consumer<ClassMapping<?, ?>> consumer) {
+        consumer.accept(classMapping);
+
+        for (InnerClassMapping innerClassMapping : classMapping.getInnerClassMappings()) {
+            iterateClasses(innerClassMapping, consumer);
         }
     }
 }
