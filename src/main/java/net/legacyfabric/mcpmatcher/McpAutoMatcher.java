@@ -21,6 +21,9 @@ public class McpAutoMatcher {
         Path v1_9_4 = Paths.get("/home/cope/projects/Legacy-Fabric/McpAutomatcher/run/1.9.4");
         Path matcherOutput = Paths.get("/home/cope/projects/Legacy-Fabric/McpAutomatcher/run/1.8.9-1.9.4.match");
 
+        Path v1_8_9Jar = v1_8_9.resolve("minecraft-1.8.9-merged.jar");
+        Path v1_9_4Jar = v1_9_4.resolve("minecraft-1.9.4-merged.jar");
+
         MappingSet v1_8_9Mappings = MappingFormats.CSRG.read(v1_8_9.resolve("joined.csrg"));
         MappingSet v1_9_4Mappings = MappingFormats.CSRG.read(v1_9_4.resolve("joined.csrg"));
 
@@ -48,11 +51,11 @@ public class McpAutoMatcher {
         System.out.println("===========================================");
 
         System.out.println("Fixing Signatures");
-        MappingSet mergedMcpFixed = MappingUtils.findAndCreateDescriptors(v1_8_9.resolve("minecraft-1.8.9-merged.jar"), statistics.mergedMcp());
+        MappingSet mergedMcpFixed = MappingUtils.findAndCreateDescriptors(v1_8_9Jar, statistics.mergedMcp());
 
         System.out.println("Generating Match File");
         MatcherFile matcherFile = new MatcherFile(mergedMcpFixed);
-        matcherFile.write(matcherOutput, "1.8.9-merged.jar", "1.9.4-merged.jar");
+        matcherFile.write(matcherOutput, v1_8_9Jar, v1_9_4Jar);
     }
 
     public static MappingPairStatistics getStatistics(MappingSet left, MappingSet right) {
