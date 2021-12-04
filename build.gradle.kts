@@ -1,5 +1,8 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
-    java
+    id("java")
+    id("com.github.johnrengelman.shadow") version "7.1.0"
 }
 
 group = "net.legacyfabric"
@@ -17,4 +20,21 @@ dependencies {
     implementation("org.ow2.asm", "asm-commons", "9.2")
     implementation("org.ow2.asm", "asm-tree", "9.2")
     implementation("org.ow2.asm", "asm-util", "9.2")
+}
+
+tasks {
+    named<ShadowJar>("shadowJar") {
+        mergeServiceFiles()
+        manifest {
+            attributes(
+                mapOf("Main-Class" to "net.legacyfabric.mcpmatcher.McpAutoMatcher")
+            )
+        }
+    }
+}
+
+tasks {
+    build {
+        dependsOn(shadowJar)
+    }
 }
