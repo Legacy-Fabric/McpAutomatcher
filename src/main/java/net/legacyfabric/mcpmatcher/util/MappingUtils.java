@@ -7,12 +7,18 @@ import org.objectweb.asm.*;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MappingUtils {
+
+    private static final Map<Pattern, String> MCP_NAME_CHANGE_MAP = new HashMap<>();
 
     public static MappingSet findAndCreateDescriptors(Path jarFile, MappingSet mappings) throws IOException {
         SignatureVisitor visitor = new SignatureVisitor(mappings);
@@ -90,5 +96,69 @@ public class MappingUtils {
         for (InnerClassMapping innerClassMapping : classMapping.getInnerClassMappings()) {
             iterateClasses(innerClassMapping, consumer);
         }
+    }
+
+    /**
+     * Utility to fix repackaged classes in MCP.
+     */
+    public static Optional<? extends ClassMapping<?, ?>> getClassAndFixRepackaging(String fullObfName, MappingSet right) {
+        // Check if the class normally matches first.
+        Optional<? extends ClassMapping<?, ?>> result = right.getClassMapping(fullObfName);
+
+        if (result.isPresent()) {
+            return result;
+        }
+
+        // If that fails, check if the class was repackaged.
+        String leftClassName = getClassName(fullObfName);
+
+        for (TopLevelClassMapping classMapping : right.getTopLevelClassMappings()) {
+            String rightClassName = getClassName(classMapping.getFullObfuscatedName());
+            if (rightClassName.equals(leftClassName)) {
+                System.out.println("Merging Repackaged classes '" + fullObfName + "' and '" + classMapping.getFullObfuscatedName() + "'");
+            }
+        }
+
+        for (Pattern pattern : MCP_NAME_CHANGE_MAP.keySet()) {
+            String[] innerClassSplit = fullObfName.split("\\$");
+            Matcher matcher = pattern.matcher(innerClassSplit[0]);
+            StringBuilder sb = new StringBuilder();
+            while (matcher.find()) {
+                matcher.appendReplacement(sb, MCP_NAME_CHANGE_MAP.get(pattern));
+            }
+
+            if (!sb.isEmpty()) {
+                if (innerClassSplit.length == 2) {
+                    sb.append("$").append(innerClassSplit[1]);
+                }
+
+                System.out.println(fullObfName + " -> " + sb);
+                return getClassAndFixRepackaging(sb.toString(), right);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static String getClassName(String fullName) {
+        String[] split = fullName.split("/");
+        return split[split.length - 1];
+    }
+
+    private static Pattern compilePattern(String pattern) {
+        return Pattern.compile(pattern);
+    }
+
+    static {
+        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/util/EnumChatFormatting"), "net/minecraft/util/text/TextFormatting");
+        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/world/ChunkCoordIntPair"), "net/minecraft/util/math/ChunkPos");
+        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/server/management/ItemInWorldManager"), "net/minecraft/server/management/PlayerInteractionManager");
+        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/world/biome/BiomeGenBase"), "net/minecraft/world/biome/Biome");
+        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/world/biome/WorldChunkManager"), "net/minecraft/world/biome/BiomeProvider");
+        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/util/EnumWorldBlockLayer"), "net/minecraft/util/BlockRenderLayer");
+        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/entity/ai/EntityMinecartMobSpawner"), "net/minecraft/entity/item/EntityMinecartMobSpawner");
+        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/entity/EntityMinecartCommandBlock"), "net/minecraft/entity/item/EntityMinecartCommandBlock");
+        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/command/server/CommandBlockLogic"), "net/minecraft/tileentity/CommandBlockBaseLogic");
+        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/world/biome/BiomeGen(.+)"), "net/minecraft/world/biome/Biome$1");
+        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/network/([^/]+)/(client|server)/(C|S)[A-Z0-9]+Packet(.+)"), "net/minecraft/network/$1/$2/$3Packet$4");
     }
 }
