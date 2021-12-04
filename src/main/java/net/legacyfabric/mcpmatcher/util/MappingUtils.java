@@ -43,12 +43,11 @@ public class MappingUtils {
     }
 
     public static MappingSet readMappingsFile(String arg) throws IOException {
-        //TODO: could use a map here and support more formats.
-        if (arg.endsWith(".csrg")) {
-            return MappingFormats.CSRG.read(Paths.get(arg));
-        } else {
-            return MappingFormats.SRG.read(Paths.get(arg));
-        }
+        return switch (arg.split("\\.")[1]) {
+            case "csrg" -> MappingFormats.CSRG.read(Paths.get(arg));
+            case "tsrg" -> MappingFormats.TSRG.read(Paths.get(arg));
+            default -> MappingFormats.SRG.read(Paths.get(arg));
+        };
     }
 
     private static class SignatureVisitor extends ClassVisitor {
