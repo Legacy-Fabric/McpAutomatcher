@@ -2,7 +2,6 @@ package net.legacyfabric.mcpmatcher;
 
 import net.legacyfabric.mcpmatcher.util.MappingUtils;
 import org.cadixdev.lorenz.MappingSet;
-import org.cadixdev.lorenz.io.MappingFormats;
 import org.cadixdev.lorenz.model.ClassMapping;
 import org.cadixdev.lorenz.model.FieldMapping;
 import org.cadixdev.lorenz.model.MethodMapping;
@@ -23,8 +22,8 @@ public class McpAutoMatcher {
 
         Path oldJar = Paths.get(args[0]);
         Path newJar = Paths.get(args[1]);
-        MappingSet oldJoined = MappingFormats.CSRG.read(Paths.get(args[2]));
-        MappingSet newJoined = MappingFormats.CSRG.read(Paths.get(args[3]));
+        MappingSet oldJoined = MappingUtils.readMappingsFile(args[2]);
+        MappingSet newJoined = MappingUtils.readMappingsFile(args[3]);
 
         MappingSet mergedMcp = mergeMcp(oldJoined, newJoined);
 

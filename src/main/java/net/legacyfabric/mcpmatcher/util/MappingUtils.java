@@ -1,11 +1,13 @@
 package net.legacyfabric.mcpmatcher.util;
 
 import org.cadixdev.lorenz.MappingSet;
+import org.cadixdev.lorenz.io.MappingFormats;
 import org.cadixdev.lorenz.model.*;
 import org.objectweb.asm.*;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +39,15 @@ public class MappingUtils {
                 ClassReader reader = new ClassReader(file.getInputStream(e));
                 reader.accept(visitor, 0);
             }
+        }
+    }
+
+    public static MappingSet readMappingsFile(String arg) throws IOException {
+        //TODO: could use a map here and support more formats.
+        if (arg.endsWith(".csrg")) {
+            return MappingFormats.CSRG.read(Paths.get(arg));
+        } else {
+            return MappingFormats.SRG.read(Paths.get(arg));
         }
     }
 
