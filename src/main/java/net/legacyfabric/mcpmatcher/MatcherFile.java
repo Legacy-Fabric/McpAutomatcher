@@ -74,14 +74,14 @@ public class MatcherFile {
     private void writeMethodMapping(Writer writer, MethodMapping methodMapping) throws IOException {
         MethodSignature obfSignature = methodMapping.getSignature();
         MethodSignature deobfSignature = methodMapping.getDeobfuscatedSignature();
-        writer.write("\t\tm\t" + obfSignature.getName() + obfSignature.getDescriptor() + "\t" + deobfSignature.getName() + deobfSignature.getDescriptor() + "\n");
+        writer.write("\tm\t" + obfSignature.getName() + obfSignature.getDescriptor() + "\t" + deobfSignature.getName() + deobfSignature.getDescriptor() + "\n");
     }
 
     private void writeFieldMapping(Writer writer, FieldMapping fieldMapping) throws IOException {
         String obfFieldInfo = fieldMapping.getObfuscatedName() + ";;" + fieldMapping.getSignature().getType().get();
         String[] splitDeobfName = fieldMapping.getDeobfuscatedName().split("/");
         String deobfFieldInfo = splitDeobfName[splitDeobfName.length - 1] + ";;" + fieldMapping.getDeobfuscatedSignature().getType().get();
-        writer.write("\t\tf\t" + obfFieldInfo + "\t" + deobfFieldInfo + "\n");
+        writer.write("\tf\t" + obfFieldInfo + "\t" + deobfFieldInfo + "\n");
     }
 
     // Stolen From Matcher. https://github.com/FabricMC/matcher
