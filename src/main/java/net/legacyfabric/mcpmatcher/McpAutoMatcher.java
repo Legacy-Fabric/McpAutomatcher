@@ -6,16 +6,19 @@ import org.cadixdev.lorenz.model.ClassMapping;
 import org.cadixdev.lorenz.model.FieldMapping;
 import org.cadixdev.lorenz.model.MethodMapping;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 public class McpAutoMatcher {
 
     public static void main(String[] args) throws IOException {
-        if (args.length != 5) {
-            System.out.println("java -jar McpAutomatcher.jar <older-version-jar> <newer-version-jar> <older-version-joined.csrg> <newer-version-joined.csrg> <output.match>");
+        if (args.length != 6) {
+            System.out.println("java -jar McpAutomatcher.jar <older-version-jar> <newer-version-jar> <older-version-joined.csrg> <newer-version-joined.csrg> <fixes.properties> <output.match>");
             System.out.println("(Dont use spaces in file names!)");
             System.exit(69);
         }
@@ -25,17 +28,29 @@ public class McpAutoMatcher {
         MappingSet oldJoined = MappingUtils.readMappingsFile(args[2]);
         MappingSet newJoined = MappingUtils.readMappingsFile(args[3]);
 
-        MappingSet mergedMcp = mergeMcp(oldJoined, newJoined);
+        try (BufferedReader reader = Files.newBufferedReader(Paths.get(args[4]))) {
+            while (reader.ready()) {
+                String[] property = reader.readLine().split("=");
+                if (!property[0].startsWith("#") && property.length == 2) {
+                    MappingUtils.MCP_NAME_CHANGE_MAP.put(compilePattern(property[0]), property[1]);
+                }
+            }
+        }
+
+        MappingSet mergedMcp = mergeMappings(oldJoined, newJoined);
 
         System.out.println("Fixing Signatures");
         MappingSet mergedMcpFixed = MappingUtils.findAndCreateDescriptors(oldJar, mergedMcp);
 
         System.out.println("Generating Match File");
         MatcherFile matcherFile = new MatcherFile(mergedMcpFixed);
-        matcherFile.write(Paths.get(args[4]), oldJar, newJar);
+        matcherFile.write(Paths.get(args[5]), oldJar, newJar);
     }
 
-    public static MappingSet mergeMcp(MappingSet left, MappingSet right) {
+    /**
+     * Merges the Obfuscated side of 2 mapping sets by using the Deobfuscated names as an intermediary.
+     */
+    public static MappingSet mergeMappings(MappingSet left, MappingSet right) {
         // We are comparing named against named, so we need to invert the mappings.
         MappingSet reversedLeft = left.reverse();
         MappingSet reversedRight = right.reverse();
@@ -67,5 +82,9 @@ public class McpAutoMatcher {
             }
         });
         return mergedMcp;
+    }
+
+    private static Pattern compilePattern(String pattern) {
+        return Pattern.compile(pattern);
     }
 }

@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 
 public class MappingUtils {
 
-    private static final Map<Pattern, String> MCP_NAME_CHANGE_MAP = new HashMap<>();
+    public static final Map<Pattern, String> MCP_NAME_CHANGE_MAP = new HashMap<>();
 
     public static MappingSet findAndCreateDescriptors(Path jarFile, MappingSet mappings) throws IOException {
         SignatureVisitor visitor = new SignatureVisitor(mappings);
@@ -153,23 +153,5 @@ public class MappingUtils {
     private static String getClassName(String fullName) {
         String[] split = fullName.split("/");
         return split[split.length - 1];
-    }
-
-    private static Pattern compilePattern(String pattern) {
-        return Pattern.compile(pattern);
-    }
-
-    static {
-        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/util/EnumChatFormatting"), "net/minecraft/util/text/TextFormatting");
-        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/world/ChunkCoordIntPair"), "net/minecraft/util/math/ChunkPos");
-        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/server/management/ItemInWorldManager"), "net/minecraft/server/management/PlayerInteractionManager");
-        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/world/biome/BiomeGenBase"), "net/minecraft/world/biome/Biome");
-        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/world/biome/WorldChunkManager"), "net/minecraft/world/biome/BiomeProvider");
-        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/util/EnumWorldBlockLayer"), "net/minecraft/util/BlockRenderLayer");
-        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/entity/ai/EntityMinecartMobSpawner"), "net/minecraft/entity/item/EntityMinecartMobSpawner");
-        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/entity/EntityMinecartCommandBlock"), "net/minecraft/entity/item/EntityMinecartCommandBlock");
-        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/command/server/CommandBlockLogic"), "net/minecraft/tileentity/CommandBlockBaseLogic");
-        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/world/biome/BiomeGen(.+)"), "net/minecraft/world/biome/Biome$1");
-        MCP_NAME_CHANGE_MAP.put(compilePattern("net/minecraft/network/([^/]+)/(client|server)/(C|S)[A-Z0-9]+Packet(.+)"), "net/minecraft/network/$1/$2/$3Packet$4");
     }
 }
