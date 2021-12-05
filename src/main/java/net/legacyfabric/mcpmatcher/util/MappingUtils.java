@@ -114,21 +114,27 @@ public class MappingUtils {
      */
     public static Optional<? extends ClassMapping<?, ?>> getClassAndFixRepackaging(String fullObfName, MappingSet right) {
         // Check if the class normally matches first.
-        Optional<? extends ClassMapping<?, ?>> result = right.getClassMapping(fullObfName);
+        var result = new Object() {
+            Optional<? extends ClassMapping<?, ?>> result = right.getClassMapping(fullObfName);
+        };
 
-        if (result.isPresent()) {
-            return result;
+        if (result.result.isPresent()) {
+            return result.result;
         }
 
         // If that fails, check if the class was repackaged.
         String leftClassName = getClassName(fullObfName);
 
-        for (TopLevelClassMapping classMapping : right.getTopLevelClassMappings()) {
+        MappingUtils.iterateClasses(right, classMapping -> {
             String rightClassName = getClassName(classMapping.getFullObfuscatedName());
             if (rightClassName.equals(leftClassName)) {
                 System.out.println("Merging Repackaged classes '" + fullObfName + "' and '" + classMapping.getFullObfuscatedName() + "'");
-                return right.getClassMapping(rightClassName);
+                result.result = Optional.of(classMapping);
             }
+        });
+
+        if (result.result.isPresent()) {
+            return result.result;
         }
 
         for (Pattern pattern : MCP_NAME_CHANGE_MAP.keySet()) {
