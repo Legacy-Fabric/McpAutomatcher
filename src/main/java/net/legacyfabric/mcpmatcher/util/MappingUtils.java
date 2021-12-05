@@ -127,6 +127,7 @@ public class MappingUtils {
             String rightClassName = getClassName(classMapping.getFullObfuscatedName());
             if (rightClassName.equals(leftClassName)) {
                 System.out.println("Merging Repackaged classes '" + fullObfName + "' and '" + classMapping.getFullObfuscatedName() + "'");
+                return right.getClassMapping(rightClassName);
             }
         }
 
